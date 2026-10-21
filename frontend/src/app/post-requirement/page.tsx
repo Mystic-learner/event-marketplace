@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createRequirement } from "@/lib/api";
+import LocationInput from "@/components/LocationInput";
 import Select from "@/components/Select";
 import {
   CATEGORIES,
@@ -342,7 +343,7 @@ export default function PostRequirementPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Location" htmlFor="location" error={errors.location}>
-                  <input id="location" value={b.location} placeholder="e.g. Udaipur, Rajasthan" onChange={(e) => w.setBasics({ location: e.target.value })} className={inputCls(errors.location)} />
+                  <LocationInput id="location" value={b.location} coords={b.locationCoords ?? null} error={errors.location} onChange={(text) => w.setBasics({ location: text, locationCoords: null })} onSelect={(label, c) => w.setBasics({ location: label, locationCoords: c })} />
                 </Field>
                 <Field label="Venue (optional)" htmlFor="venue" error={errors.venue}>
                   <input id="venue" value={b.venue} placeholder="e.g. Taj Lake Palace" onChange={(e) => w.setBasics({ venue: e.target.value })} className={inputCls(errors.venue)} />

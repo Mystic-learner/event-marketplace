@@ -9,6 +9,8 @@ const baseSchema = new Schema(
     endDate: { type: Date, required: true },
     location: { type: String, required: true, trim: true },
     venue: { type: String, trim: true },
+    latitude: { type: Number, min: -90, max: 90 },
+    longitude: { type: Number, min: -180, max: 180 },
     status: { type: String, enum: ["open", "closed"], default: "open" },
   },
   { discriminatorKey: "category", timestamps: true }

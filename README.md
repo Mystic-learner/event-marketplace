@@ -62,7 +62,9 @@ POST /api/requirements
   "dateMode": "range",
   "startDate": "2026-11-19",
   "endDate": "2026-11-21",
-  "location": "Bengaluru, Karnataka",
+  "location": "Bengaluru, Karnataka, India",
+  "latitude": 12.9716,
+  "longitude": 77.5946,
   "role": "Sound",
   "headcount": 6,
   "shiftHours": 10,
@@ -123,14 +125,18 @@ Backend tests cover valid POST for each category, validation failures (empty bod
 - **Category switch safeguard.** Changing category after entering details clears the category-specific data and shows a notice, so stale fields never reach the API.
 - **Wizard state** lives in a Zustand store persisted to `sessionStorage`, so a refresh doesn't lose progress.
 - **Dates** are `YYYY-MM-DD` strings, stored as UTC dates. The server allows one day of tolerance so timezone differences don't reject "today".
+- **Location is picked, not typed.** Geolocation returns where the user is, not where the event is, so it is offered as a shortcut next to a place search rather than as the only input.
 - **Assumption:** the brief doesn't specify the category fields, so I chose realistic ones for each category.
 
 ## Edge cases handled
 
 End date before start date, past dates, optional venue left blank, whitespace-only strings, budget or fee min greater than max, negative or non-numeric numbers, category switch mid-flow, double submit, network failure, server validation errors, invalid ObjectId, empty list, loading skeletons.
 
+Location: users can't type arbitrary text. A place is either picked from geocoded search results (Open-Meteo) or detected with the browser Geolocation API and reverse-geocoded to a city (BigDataCloud). Denied permission, timeout, an unavailable position, a failed reverse lookup and a failed search each show a clear message and fall back to the search box. The coordinates are validated on the client and on the server and saved with the requirement.
+
 ## Limitations and future improvements
 
+- Coordinates sent directly to the API are range-checked but not re-verified against a geocoder. A server-side reverse-geocode check would close that gap. The free geocoding services used here are meant for light, non-commercial use.
 - No authentication: anyone can post or delete. Next step is user accounts with owner-only edit and delete.
 - Search uses a regex filter, which would not scale. A MongoDB text index would be the next step.
 - No file uploads (venue photos, rider documents).

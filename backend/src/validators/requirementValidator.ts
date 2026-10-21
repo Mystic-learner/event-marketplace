@@ -23,6 +23,8 @@ const base = {
   endDate: dateStr.optional(),
   location: z.string().trim().min(2, "Location is required").max(150),
   venue: z.string().trim().max(100, "Venue must be 100 characters or fewer").optional(),
+  latitude: z.number({ invalid_type_error: "Latitude must be a number" }).optional(),
+  longitude: z.number({ invalid_type_error: "Longitude must be a number" }).optional(),
 };
 
 const planner = z.object({
@@ -67,6 +69,11 @@ const earliestAllowed = () => new Date(Date.now() - 864e5).toISOString().slice(0
 export const createRequirementSchema = z
   .discriminatedUnion("category", [planner, performer, crew])
   .superRefine((v, ctx) => {
+    if (v.latitude === undefined || v.longitude === undefined) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["location"], message: "Select a location from the suggestions" });
+    } else if (v.latitude < -90 || v.latitude > 90 || v.longitude < -180 || v.longitude > 180) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["location"], message: "Location coordinates are out of range" });
+    }
     if (v.startDate < earliestAllowed()) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["startDate"], message: "Date can't be in the past" });
     }

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import PostRequirementPage from "@/app/post-requirement/page";
 import { useWizardStore } from "@/store/wizardStore";
 
@@ -9,7 +9,7 @@ function fillBasics(category: RegExp) {
   fireEvent.click(screen.getByLabelText(/event type/i));
   fireEvent.click(screen.getByRole("option", { name: "Wedding" }));
   fireEvent.change(screen.getByLabelText(/event date/i), { target: { value: "2099-01-01" } });
-  fireEvent.change(screen.getByLabelText(/location/i), { target: { value: "Udaipur" } });
+  act(() => { useWizardStore.getState().setBasics({ location: "Udaipur, Rajasthan, India", locationCoords: { lat: 24.58, lng: 73.68 } }); });
   fireEvent.click(screen.getByRole("button", { name: category }));
 }
 
@@ -60,5 +60,16 @@ describe("requirement wizard", () => {
     fireEvent.click(screen.getByRole("button", { name: /back/i }));
     fireEvent.click(screen.getByRole("button", { name: /crew/i }));
     expect(screen.getByRole("status")).toHaveTextContent(/cleared/i);
+  });
+});
+describe("location validation", () => {
+  it("blocks Next when the location wasn't picked from the suggestions", () => {
+    render(<PostRequirementPage />);
+    fillBasics(/planner/i);
+    act(() => {
+      useWizardStore.getState().setBasics({ locationCoords: null });
+    });
+    clickNext();
+    expect(screen.getByText("Select a location from the suggestions")).toBeInTheDocument();
   });
 });

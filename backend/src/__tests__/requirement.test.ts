@@ -28,7 +28,9 @@ const base = {
   dateMode: "single",
   startDate: future(30),
   endDate: future(30),
-  location: "Udaipur",
+  location: "Udaipur, Rajasthan, India",
+  latitude: 24.5854,
+  longitude: 73.7125,
 };
 const planner = { ...base, category: "planner", services: ["Decor", "Catering"], guestCount: 200, budgetMin: 50000, budgetMax: 200000, experienceLevel: "Expert", languages: ["English", "Hindi"] };
 const performer = { ...base, category: "performer", performanceType: "DJ", genre: "EDM", duration: 90, feeMin: 8000, feeMax: 15000, equipmentProvided: true };
@@ -158,6 +160,38 @@ describe("DELETE /api/requirements/:id", () => {
 
   it("returns 400 for an invalid id", async () => {
     const res = await request(app).delete("/api/requirements/not-an-id");
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("location coordinates", () => {
+  it("saves the coordinates with the requirement", async () => {
+    const res = await request(app).post("/api/requirements").send(crew);
+    expect(res.status).toBe(201);
+    expect(res.body.data.latitude).toBeCloseTo(24.5854);
+    expect(res.body.data.longitude).toBeCloseTo(73.7125);
+  });
+
+  it("rejects a payload without coordinates", async () => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, latitude: undefined, longitude: undefined });
+    expect(res.status).toBe(400);
+    expect(res.body.error.fields.location).toBeDefined();
+  });
+
+  it("rejects a latitude above 90", async () => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, latitude: 95 });
+    expect(res.status).toBe(400);
+    expect(res.body.error.fields.location).toBeDefined();
+  });
+
+  it("rejects a longitude above 180", async () => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, longitude: 190 });
+    expect(res.status).toBe(400);
+    expect(res.body.error.fields.location).toBeDefined();
+  });
+
+  it("rejects non-numeric coordinates", async () => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, latitude: "abc" });
     expect(res.status).toBe(400);
   });
 });

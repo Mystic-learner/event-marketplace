@@ -14,6 +14,7 @@ export interface Basics {
   location: string;
   venue: string;
   category: Category | "";
+  locationCoords: { lat: number; lng: number } | null;
 }
 
 export const EMPTY_BASICS: Basics = {
@@ -25,6 +26,7 @@ export const EMPTY_BASICS: Basics = {
   location: "",
   venue: "",
   category: "",
+  locationCoords: null,
 };
 
 const opts = (...v: string[]): Option[] => v.map((x) => ({ value: x, label: x }));
@@ -134,11 +136,18 @@ export const basicsSchema = z
     dateMode: z.enum(["single", "range"]),
     startDate: z.string().min(1, "Date is required"),
     endDate: z.string(),
-    location: z.string().trim().min(2, "Location is required"),
+    location: z.string().trim().min(2, "Select a location from the suggestions"),
+    locationCoords: z
+      .object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
+      .nullable()
+      .optional(),
     venue: z.string().trim().max(100, "Venue must be 100 characters or fewer").optional(),
     category: z.string().refine((v) => CATEGORIES.some((c) => c.id === v), "Select a category"),
   })
   .superRefine((v, ctx) => {
+    if (!v.locationCoords) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["location"], message: "Select a location from the suggestions" });
+    }
     if (v.startDate && v.startDate < todayStr()) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["startDate"], message: "Date can't be in the past" });
     }
@@ -247,6 +256,8 @@ export function buildPayload(basics: Basics, details: Details) {
     startDate: basics.startDate,
     endDate: basics.dateMode === "range" ? basics.endDate : basics.startDate,
     location: basics.location.trim(),
+    latitude: basics.locationCoords?.lat,
+    longitude: basics.locationCoords?.lng,
     category: basics.category,
   };
   if (basics.venue.trim()) out.venue = basics.venue.trim();
