@@ -1,3 +1,4 @@
+import { looksMeaningful, EVENT_NAME_MESSAGE } from "./looksMeaningful";
 import { z } from "zod";
 
 export type Category = "planner" | "performer" | "crew";
@@ -131,7 +132,8 @@ export const basicsSchema = z
       .string()
       .trim()
       .min(3, "Event name must be at least 3 characters")
-      .max(100, "Event name must be 100 characters or fewer"),
+      .max(100, "Event name must be 100 characters or fewer")
+      .refine(looksMeaningful, EVENT_NAME_MESSAGE),
     eventType: pick("an event type", EVENT_TYPES),
     dateMode: z.enum(["single", "range"]),
     startDate: z.string().min(1, "Date is required"),
