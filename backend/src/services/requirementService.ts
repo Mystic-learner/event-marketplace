@@ -25,6 +25,8 @@ export async function createRequirement(input: CreateRequirementInput) {
 export async function listRequirements(opts: { category?: string; q?: string; page: number; limit: number }) {
   const filter: Record<string, unknown> = {};
   if (opts.category) filter.category = opts.category;
+  const today = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z");
+  filter.endDate = { $gte: today }; // hide events that have already ended
   if (opts.q) {
     const rx = new RegExp(escapeRegExp(opts.q), "i");
     filter.$or = [{ eventName: rx }, { location: rx }, { venue: rx }];
