@@ -12,9 +12,23 @@ const MODELS: Record<string, Model<any>> = {
 const toDate = (s: string) => new Date(`${s}T00:00:00.000Z`);
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+export class DuplicateRequirementError extends Error {
+  constructor() {
+    super("A requirement with the same name, date and location already exists");
+  }
+}
+
 export async function createRequirement(input: CreateRequirementInput) {
   const { category, startDate, endDate, ...rest } = input;
   const end = input.dateMode === "range" ? endDate ?? startDate : startDate;
+  const exact = (s: string) => new RegExp(`^${escapeRegExp(s.trim())}$`, "i");
+  const dup = await Requirement.findOne({
+    category,
+    eventName: exact(rest.eventName),
+    location: exact(rest.location),
+    startDate: toDate(startDate),
+  }).lean();
+  if (dup) throw new DuplicateRequirementError();
   return MODELS[category].create({
     ...rest,
     startDate: toDate(startDate),

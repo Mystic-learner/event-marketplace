@@ -12,6 +12,7 @@ const baseSchema = new Schema(
     latitude: { type: Number, min: -90, max: 90 },
     longitude: { type: Number, min: -180, max: 180 },
     status: { type: String, enum: ["open", "closed"], default: "open" },
+    deleteTokenHash: { type: String, select: false },
   },
   { discriminatorKey: "category", timestamps: true }
 );

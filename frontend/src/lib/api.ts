@@ -35,7 +35,7 @@ export interface Requirement {
   specialRequirements?: string;
 }
 
-async function apiRequest<T>(method: string, path: string, body?: unknown) {
+async function apiRequest<T>(method: string, path: string, body?: unknown, extraHeaders?: Record<string, string>) {
   const url = `${BASE}${path}`;
   const started = performance.now();
   let status = 0;
@@ -44,7 +44,7 @@ async function apiRequest<T>(method: string, path: string, body?: unknown) {
   try {
     const res = await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...extraHeaders },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     status = res.status;
@@ -60,7 +60,9 @@ async function apiRequest<T>(method: string, path: string, body?: unknown) {
 }
 
 export async function createRequirement(body: Record<string, unknown>) {
-  const { status, payload } = await apiRequest<{ _id?: string; id?: string }>("POST", "/api/requirements", body);
+  const { status, payload } = await apiRequest<{ _id?: string; id?: string; deleteToken?: string }>("POST", "/api/requirements", body);
+  const newId = payload.data?._id ?? payload.data?.id;
+  if (payload.success && newId && payload.data?.deleteToken) saveOwnedToken(newId, payload.data.deleteToken);
   return {
     ok: payload.success,
     status,
@@ -93,6 +95,37 @@ export async function listRequirements(params: { category?: string; q?: string; 
   return { ok: payload.success, items, totalPages, message: payload.error?.message };
 }
 export async function deleteRequirement(id: string) {
-  const { payload } = await apiRequest<unknown>("DELETE", `/api/requirements/${id}`);
+  const token = getOwnedTokens()[id] ?? "";
+  const { payload } = await apiRequest<unknown>("DELETE", `/api/requirements/${id}`, undefined, { "x-delete-token": token });
+  if (payload.success) forgetOwnedToken(id);
   return { ok: payload.success, message: payload.error?.message };
+}
+
+const OWNED_KEY = "ownedPosts";
+
+export function getOwnedTokens(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(OWNED_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeOwnedTokens(map: Record<string, string>) {
+  try {
+    window.localStorage.setItem(OWNED_KEY, JSON.stringify(map));
+  } catch {
+    /* storage unavailable: the post just won't show a delete button */
+  }
+}
+
+export function saveOwnedToken(id: string, token: string) {
+  writeOwnedTokens({ ...getOwnedTokens(), [id]: token });
+}
+
+export function forgetOwnedToken(id: string) {
+  const map = getOwnedTokens();
+  delete map[id];
+  writeOwnedTokens(map);
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CalendarDays, MapPin, Music, Search, Sparkles, Trash2, Wrench } from "lucide-react";
-import { deleteRequirement, listRequirements, type Requirement } from "@/lib/api";
+import { deleteRequirement, getOwnedTokens, listRequirements, type Requirement } from "@/lib/api";
 
 const TABS = [
   { id: "all", label: "All" },
@@ -66,6 +66,11 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [owned, setOwned] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setOwned(getOwnedTokens());
+  }, []);
 
   async function onDelete(id: string) {
     const res = await deleteRequirement(id);
@@ -201,7 +206,7 @@ export default function FeedPage() {
                     <div className="mt-auto flex items-center gap-2 border-t border-[#efe9de] pt-3 text-[10px] font-semibold uppercase tracking-widest text-emerald-700">
                       <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                       {r.status ?? "open"}
-                      {confirmId === r._id ? (
+                      {!owned[r._id] ? null : confirmId === r._id ? (
                         <span className="ml-auto flex items-center gap-2">
                           <button type="button" onClick={() => onDelete(r._id)} className="rounded-full bg-red-600 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-white">
                             Confirm

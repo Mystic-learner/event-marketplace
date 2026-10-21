@@ -148,7 +148,7 @@ describe("DELETE /api/requirements/:id", () => {
   it("deletes an existing requirement", async () => {
     const created = await request(app).post("/api/requirements").send(crew);
     const id = created.body.data._id;
-    const res = await request(app).delete(`/api/requirements/${id}`);
+    const res = await request(app).delete(`/api/requirements/${id}`).set("x-delete-token", created.body.data.deleteToken);
     expect(res.status).toBe(200);
     expect(await Requirement.countDocuments({})).toBe(0);
   });
@@ -225,5 +225,41 @@ describe("upper limits", () => {
   it("rejects html in languages", async () => {
     const res = await request(app).post("/api/requirements").send({ ...planner, languages: ["<b>12345</b>"] });
     expect(res.status).toBe(400);
+  });
+});
+
+describe("duplicates", () => {
+  it("rejects a duplicate requirement with 409", async () => {
+    const first = await request(app).post("/api/requirements").send({ ...crew, eventName: "Royal Palace Gala" });
+    expect(first.status).toBe(201);
+    const second = await request(app).post("/api/requirements").send({ ...crew, eventName: "  royal palace gala " });
+    expect(second.status).toBe(409);
+  });
+});
+
+describe("delete ownership", () => {
+  it("returns the delete token on create but never the hash", async () => {
+    const res = await request(app).post("/api/requirements").send(crew);
+    expect(typeof res.body.data.deleteToken).toBe("string");
+    expect(JSON.stringify(res.body)).not.toContain("deleteTokenHash");
+  });
+  it("rejects delete without a token", async () => {
+    const created = await request(app).post("/api/requirements").send(crew);
+    const res = await request(app).delete(`/api/requirements/${created.body.data._id}`);
+    expect(res.status).toBe(403);
+    expect(await Requirement.countDocuments({})).toBe(1);
+  });
+  it("rejects delete with a wrong token", async () => {
+    const created = await request(app).post("/api/requirements").send(crew);
+    const res = await request(app).delete(`/api/requirements/${created.body.data._id}`).set("x-delete-token", "wrong");
+    expect(res.status).toBe(403);
+    expect(await Requirement.countDocuments({})).toBe(1);
+  });
+  it("never leaks the hash in list or get", async () => {
+    const created = await request(app).post("/api/requirements").send(crew);
+    const list = await request(app).get("/api/requirements");
+    const one = await request(app).get(`/api/requirements/${created.body.data._id}`);
+    expect(JSON.stringify(list.body)).not.toContain("deleteTokenHash");
+    expect(JSON.stringify(one.body)).not.toContain("deleteTokenHash");
   });
 });
