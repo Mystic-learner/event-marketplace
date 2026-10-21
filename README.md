@@ -139,7 +139,7 @@ Location: users can't type arbitrary text. A place is either picked from geocode
 ## Limitations and future improvements
 
 - Coordinates sent directly to the API are range-checked but not re-verified against a geocoder. A server-side reverse-geocode check would close that gap. The free geocoding services used here are meant for light, non-commercial use.
-- No authentication: anyone can post or delete. Next step is user accounts with owner-only edit and delete.
+- No user accounts. Delete is guarded by an owner token stored in the poster's browser, so clearing site data means losing the ability to delete your own posts. Expired events are hidden from the feed. Next step is user accounts with owner-only edit and delete.
 - Search uses a regex filter, which would not scale. A MongoDB text index would be the next step.
 - No file uploads (venue photos, rider documents).
 - No end-to-end tests (Playwright) and no CI pipeline yet.
