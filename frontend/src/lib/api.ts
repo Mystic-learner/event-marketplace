@@ -1,7 +1,7 @@
 import type { Category } from "@/lib/wizardConfig";
 import { useDevConsole } from "@/store/devConsoleStore";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://event-marketplace-3.onrender.com";
 
 export interface ApiEnvelope<T> {
   success: boolean;
