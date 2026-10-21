@@ -100,7 +100,7 @@ describe("GET /api/requirements", () => {
   });
 
   it("paginates results", async () => {
-    for (let i = 0; i < 3; i++) await request(app).post("/api/requirements").send(crew);
+    for (const eventName of ["Royal Palace Gala", "Sharma Wedding Reception", "Annual Corporate Meetup"]) await request(app).post("/api/requirements").send({ ...crew, eventName });
     const res = await request(app).get("/api/requirements?limit=2&page=1");
     expect(res.body.data.items).toHaveLength(2);
     expect(res.body.data.totalPages).toBe(2);

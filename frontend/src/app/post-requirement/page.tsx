@@ -88,7 +88,7 @@ function DetailField({
   return (
     <Field label={def.label} htmlFor={def.name} error={error}>
       {def.kind === "textarea" ? (
-        <textarea id={def.name} rows={4} value={v} placeholder={def.placeholder} onChange={(e) => onChange(e.target.value)} className={inputCls(error)} />
+        <><textarea id={def.name} rows={4} maxLength={1000} value={v} placeholder={def.placeholder} onChange={(e) => onChange(e.target.value)} className={inputCls(error)} /><p className="mt-1 text-right text-[11px] text-stone-400">{v.length}/1000</p></>
       ) : def.kind === "select" ? (
         <Select id={def.name} value={v} options={def.options} onChange={onChange} error={error} />
       ) : (

@@ -59,7 +59,7 @@ function isAbort(e: unknown): boolean {
 }
 
 async function fetchPlaces(name: string, signal: AbortSignal): Promise<Place[]> {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=6&language=en&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=6&language=en&countryCode=IN&format=json`;
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error("Search failed");
   const data = (await res.json()) as GeocodeResponse;
