@@ -22,7 +22,7 @@ Category-specific fields:
 - **Performer:** performance type, genre, duration, fee min/max, equipment provided, special requirements
 - **Crew:** role, headcount, shift hours, pay rate and unit (per hour / per day), experience level, notes
 
-Also included: a live feed with category tabs, search and pagination, a delete option on each card, and a Dev Console drawer that logs every API call (method, status, latency, request and response bodies).
+Also included: a live feed with category tabs, search and pagination, and a delete option on each card.
 
 ## Architecture
 
@@ -117,7 +117,7 @@ cd backend && npm test      # Jest + Supertest + mongodb-memory-server
 cd frontend && npm test     # Jest + React Testing Library
 ```
 
-Backend tests cover valid POST for each category, validation failures (empty body, missing services, end before start, past date, budget min greater than max), unknown-key stripping, filtering, search, pagination, invalid and unknown ids, and delete. Frontend tests cover step validation, category-specific fields, and the category-switch notice.
+Backend tests cover valid POST for each category, validation failures (empty body, missing services, end before start, past date, budget min greater than max, meaningless event names, out-of-range or missing coordinates), unknown-key stripping, filtering, search, pagination, invalid and unknown ids, and delete. Frontend tests cover step validation, category-specific fields, and the category-switch notice.
 
 ## Design decisions and assumptions
 
@@ -131,6 +131,8 @@ Backend tests cover valid POST for each category, validation failures (empty bod
 ## Edge cases handled
 
 End date before start date, past dates, optional venue left blank, whitespace-only strings, budget or fee min greater than max, negative or non-numeric numbers, category switch mid-flow, double submit, network failure, server validation errors, invalid ObjectId, empty list, loading skeletons.
+
+Event names: names that look like keyboard mashing (e.g. `asdfgh`), repeated characters (`aaaa`), long runs of consonants, or contain no letters (`12345`) are rejected on both the frontend wizard and the backend API.
 
 Location: users can't type arbitrary text. A place is either picked from geocoded search results (Open-Meteo) or detected with the browser Geolocation API and reverse-geocoded to a city (BigDataCloud). Denied permission, timeout, an unavailable position, a failed reverse lookup and a failed search each show a clear message and fall back to the search box. The coordinates are validated on the client and on the server and saved with the requirement.
 

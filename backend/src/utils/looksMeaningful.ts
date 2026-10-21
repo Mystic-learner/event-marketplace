@@ -14,7 +14,7 @@ export function looksMeaningful(name: string): boolean {
   const t = name.trim();
   if (t.length < 3 || t.length > 100) return false;
   if (!HAS_LETTER.test(t)) return false;
-  if (/^(.)\1+$/u.test(t.replace(/\s+/g, ""))) return false;
+  if (/^(.)\1+$/.test(t.replace(/\s+/g, ""))) return false;
   if (KEYBOARD_RUNS.test(t)) return false;
   if (CONSONANT_RUN.test(t)) return false;
   return true;
