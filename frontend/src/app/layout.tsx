@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
-import DevConsole from "@/components/DevConsole";
 
 const serif = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-serif" });
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -22,7 +21,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </a>
         </nav>
         {children}
-        <DevConsole />
       </body>
     </html>
   );

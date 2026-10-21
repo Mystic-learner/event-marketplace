@@ -1,5 +1,4 @@
 import type { Category } from "@/lib/wizardConfig";
-import { useDevConsole } from "@/store/devConsoleStore";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://event-marketplace-3.onrender.com";
 
@@ -56,16 +55,6 @@ async function apiRequest<T>(method: string, path: string, body?: unknown) {
   } catch {
     payload = { success: false, error: { message: "Network error: could not reach the server" } };
   }
-
-  useDevConsole.getState().addLog({
-    method,
-    url: path,
-    status,
-    ok: payload.success,
-    durationMs: Math.round(performance.now() - started),
-    request: body ?? null,
-    response: payload,
-  });
 
   return { status, payload };
 }
