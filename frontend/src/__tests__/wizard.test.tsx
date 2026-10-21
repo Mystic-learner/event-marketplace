@@ -4,11 +4,17 @@ import { useWizardStore } from "@/store/wizardStore";
 
 jest.mock("@/lib/api", () => ({ createRequirement: jest.fn() }));
 
+function futureDate() {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
 function fillBasics(category: RegExp) {
   fireEvent.change(screen.getByLabelText(/event name/i), { target: { value: "Royal Palace Gala" } });
   fireEvent.click(screen.getByLabelText(/event type/i));
   fireEvent.click(screen.getByRole("option", { name: "Wedding" }));
-  fireEvent.change(screen.getByLabelText(/event date/i), { target: { value: "2099-01-01" } });
+  fireEvent.change(screen.getByLabelText(/event date/i), { target: { value: futureDate() } });
   act(() => { useWizardStore.getState().setBasics({ location: "Udaipur, Rajasthan, India", locationCoords: { lat: 24.58, lng: 73.68 } }); });
   fireEvent.click(screen.getByRole("button", { name: category }));
 }

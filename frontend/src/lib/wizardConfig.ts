@@ -1,3 +1,4 @@
+import { LIMITS, maxEventDate, LANGUAGES_REGEX } from "./limits";
 import { looksMeaningful, EVENT_NAME_MESSAGE } from "./looksMeaningful";
 import { z } from "zod";
 
@@ -136,8 +137,8 @@ export const basicsSchema = z
       .refine(looksMeaningful, EVENT_NAME_MESSAGE),
     eventType: pick("an event type", EVENT_TYPES),
     dateMode: z.enum(["single", "range"]),
-    startDate: z.string().min(1, "Date is required"),
-    endDate: z.string(),
+    startDate: z.string().min(1, "Date is required").refine((v) => v === "" || v <= maxEventDate(), "Date cannot be more than 3 years ahead"),
+    endDate: z.string().refine((v) => v === "" || v <= maxEventDate(), "Date cannot be more than 3 years ahead"),
     location: z.string().trim().min(2, "Select a location from the suggestions"),
     locationCoords: z
       .object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
@@ -169,9 +170,9 @@ export const STEP_SCHEMAS: Record<Category, [z.ZodTypeAny, z.ZodTypeAny]> = {
     z
       .object({
         services: z.array(z.string()).min(1, "Pick at least one service"),
-        guestCount: num("Guest count", 1, true),
-        budgetMin: num("Minimum budget"),
-        budgetMax: num("Maximum budget"),
+        guestCount: num("Guest count", 1, true).refine((v) => v === "" || Number(v) <= LIMITS.MAX_GUESTS, "Guest count cannot exceed 1,00,000"),
+        budgetMin: num("Minimum budget", 1).refine((v) => v === "" || Number(v) <= LIMITS.MAX_MONEY, "Budget cannot exceed 10 crore"),
+        budgetMax: num("Maximum budget", 1).refine((v) => v === "" || Number(v) <= LIMITS.MAX_MONEY, "Budget cannot exceed 10 crore"),
       })
       .superRefine((v, ctx) => {
         if (v.budgetMin !== "" && v.budgetMax !== "" && Number(v.budgetMin) > Number(v.budgetMax)) {
@@ -180,7 +181,7 @@ export const STEP_SCHEMAS: Record<Category, [z.ZodTypeAny, z.ZodTypeAny]> = {
       }),
     z.object({
       experienceLevel: pick("an experience level", LEVELS),
-      languages: z.string().trim().min(1, "Add at least one language"),
+      languages: z.string().trim().min(1, "Add at least one language").max(100, "Keep this under 100 characters").regex(LANGUAGES_REGEX, "Use letters and commas only, e.g. English, Hindi"),
       notes,
     }),
   ],
@@ -192,8 +193,8 @@ export const STEP_SCHEMAS: Record<Category, [z.ZodTypeAny, z.ZodTypeAny]> = {
     }),
     z
       .object({
-        feeMin: num("Minimum fee"),
-        feeMax: num("Maximum fee"),
+        feeMin: num("Minimum fee", 1).refine((v) => v === "" || Number(v) <= LIMITS.MAX_MONEY, "Fee cannot exceed 10 crore"),
+        feeMax: num("Maximum fee", 1).refine((v) => v === "" || Number(v) <= LIMITS.MAX_MONEY, "Fee cannot exceed 10 crore"),
         equipmentProvided: pick("an option", YES_NO),
         specialRequirements: notes,
       })
@@ -206,11 +207,11 @@ export const STEP_SCHEMAS: Record<Category, [z.ZodTypeAny, z.ZodTypeAny]> = {
   crew: [
     z.object({
       role: pick("a role", CREW_ROLES),
-      headcount: num("Headcount", 1, true),
+      headcount: num("Headcount", 1, true).refine((v) => v === "" || Number(v) <= LIMITS.MAX_HEADCOUNT, "Headcount cannot exceed 1,000"),
     }),
     z.object({
       shiftHours: num("Shift hours", 1).refine((v) => v === "" || Number(v) <= 24, "Shift hours can't exceed 24"),
-      payRate: num("Pay rate", 1),
+      payRate: num("Pay rate", 1).refine((v) => v === "" || Number(v) <= LIMITS.MAX_PAY_RATE, "Pay rate cannot exceed 1,00,000"),
       payUnit: pick("a pay unit", PAY_UNITS),
       experienceLevel: pick("an experience level", LEVELS),
       notes,

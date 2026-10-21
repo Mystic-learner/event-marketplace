@@ -208,3 +208,22 @@ describe("event name quality", () => {
     expect(res.status).toBe(201);
   });
 });
+
+describe("upper limits", () => {
+  it("rejects year 9999", async () => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, startDate: "9999-12-31", endDate: "9999-12-31" });
+    expect(res.status).toBe(400);
+  });
+  it.each([0, 10000000])("rejects crew pay rate %s", async (payRate) => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, payRate });
+    expect(res.status).toBe(400);
+  });
+  it("rejects a huge headcount", async () => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, headcount: 100000 });
+    expect(res.status).toBe(400);
+  });
+  it("rejects html in languages", async () => {
+    const res = await request(app).post("/api/requirements").send({ ...planner, languages: ["<b>12345</b>"] });
+    expect(res.status).toBe(400);
+  });
+});

@@ -1,3 +1,4 @@
+import { LIMITS, maxEventDate, LANGUAGES_REGEX } from "../utils/limits";
 import { looksMeaningful, EVENT_NAME_MESSAGE } from "../utils/looksMeaningful";
 import { z, ZodError } from "zod";
 
@@ -11,10 +12,11 @@ const CREW_ROLES = ["Sound", "Lighting", "Stage", "Security", "Photography", "Ge
 const dateStr = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Use the format YYYY-MM-DD")
-  .refine((s) => !Number.isNaN(Date.parse(s)), "Invalid date");
+  .refine((s) => !Number.isNaN(Date.parse(s)), "Invalid date")
+  .refine((s) => s <= maxEventDate(), "Date can be at most 3 years ahead");
 
 const notes = z.string().trim().max(1000, "Keep this under 1000 characters").optional();
-const money = z.number({ invalid_type_error: "Must be a number" }).min(0, "Can't be negative");
+const money = z.number({ invalid_type_error: "Must be a number" }).min(LIMITS.MIN_MONEY, "Must be at least 1").max(LIMITS.MAX_MONEY, "Amount is too large");
 
 const base = {
   eventName: z.string().trim().min(3, "Event name must be at least 3 characters").max(100, "Event name must be 100 characters or fewer").refine(looksMeaningful, EVENT_NAME_MESSAGE),
@@ -32,11 +34,11 @@ const planner = z.object({
   ...base,
   category: z.literal("planner"),
   services: z.array(z.enum(SERVICES)).min(1, "Pick at least one service"),
-  guestCount: z.number().int("Must be a whole number").min(1, "At least 1 guest"),
+  guestCount: z.number().int("Must be a whole number").min(1, "At least 1 guest").max(LIMITS.MAX_GUESTS, "Guest count is too large"),
   budgetMin: money,
   budgetMax: money,
   experienceLevel: z.enum(LEVELS),
-  languages: z.array(z.string().trim().min(1)).min(1, "Add at least one language"),
+  languages: z.array(z.string().trim().min(1).max(50, "Language name is too long").regex(LANGUAGES_REGEX, "Use letters only, e.g. English")).min(1, "Add at least one language").max(10, "Too many languages"),
   notes,
 });
 
@@ -45,7 +47,7 @@ const performer = z.object({
   category: z.literal("performer"),
   performanceType: z.enum(PERF_TYPES),
   genre: z.string().trim().min(2, "Genre is required").max(100),
-  duration: z.number().min(1, "Duration must be at least 1 minute"),
+  duration: z.number().min(1, "Duration must be at least 1 minute").max(1440, "Duration is too long"),
   feeMin: money,
   feeMax: money,
   equipmentProvided: z.boolean(),
@@ -56,9 +58,9 @@ const crew = z.object({
   ...base,
   category: z.literal("crew"),
   role: z.enum(CREW_ROLES),
-  headcount: z.number().int("Must be a whole number").min(1, "At least 1 person"),
+  headcount: z.number().int("Must be a whole number").min(1, "At least 1 person").max(LIMITS.MAX_HEADCOUNT, "Headcount is too large"),
   shiftHours: z.number().min(1, "At least 1 hour").max(24, "Shift hours can't exceed 24"),
-  payRate: z.number().min(1, "Pay rate must be at least 1"),
+  payRate: z.number().min(1, "Pay rate must be at least 1").max(LIMITS.MAX_PAY_RATE, "Pay rate is too large"),
   payUnit: z.enum(["hour", "day"]),
   experienceLevel: z.enum(LEVELS),
   notes,
