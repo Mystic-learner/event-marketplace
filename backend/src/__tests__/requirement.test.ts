@@ -195,3 +195,16 @@ describe("location coordinates", () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe("event name quality", () => {
+  it.each(["asdfgh", "aaaa", "12345", "ab"])("rejects event name %s", async (name) => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, eventName: name });
+    expect(res.status).toBe(400);
+    expect(res.body.error.fields.eventName).toBeDefined();
+  });
+
+  it.each(["DJ Nite", "Sharma Wedding Reception"])("accepts event name %s", async (name) => {
+    const res = await request(app).post("/api/requirements").send({ ...crew, eventName: name });
+    expect(res.status).toBe(201);
+  });
+});

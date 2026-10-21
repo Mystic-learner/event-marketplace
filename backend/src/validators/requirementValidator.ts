@@ -1,3 +1,4 @@
+import { looksMeaningful, EVENT_NAME_MESSAGE } from "../utils/looksMeaningful";
 import { z, ZodError } from "zod";
 
 export const CATEGORIES = ["planner", "performer", "crew"] as const;
@@ -16,7 +17,7 @@ const notes = z.string().trim().max(1000, "Keep this under 1000 characters").opt
 const money = z.number({ invalid_type_error: "Must be a number" }).min(0, "Can't be negative");
 
 const base = {
-  eventName: z.string().trim().min(3, "Event name must be at least 3 characters").max(100, "Event name must be 100 characters or fewer"),
+  eventName: z.string().trim().min(3, "Event name must be at least 3 characters").max(100, "Event name must be 100 characters or fewer").refine(looksMeaningful, EVENT_NAME_MESSAGE),
   eventType: z.enum(EVENT_TYPES, { errorMap: () => ({ message: "Select a valid event type" }) }),
   dateMode: z.enum(["single", "range"]),
   startDate: dateStr,
