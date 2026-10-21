@@ -26,7 +26,13 @@ const inputCls = (err?: string) =>
     err ? "border-red-400 bg-red-50/40" : "border-[#e7e0d5] bg-[#faf7f2]"
   }`;
 
-function Field({ label, htmlFor, error, children }: { label: string; htmlFor?: string; error?: string; children: ReactNode }) {
+function Field({ label: rawLabel, htmlFor, error, required, children }: { label: string; htmlFor?: string; error?: string; required?: boolean; children: ReactNode }) {
+  const label = (
+    <>
+      {rawLabel}
+      {required && <span aria-hidden="true" className="ml-0.5 text-red-500">*</span>}
+    </>
+  );
   const cls = "mb-1.5 block text-xs font-semibold text-stone-700";
   return (
     <div>
@@ -61,7 +67,7 @@ function DetailField({
   if (def.kind === "multi") {
     const selected = Array.isArray(value) ? value : [];
     return (
-      <Field label={def.label} error={error}>
+      <Field label={def.label} error={error} required={def.name !== "notes" && def.name !== "specialRequirements"}>
         <div className="flex flex-wrap gap-2">
           {def.options.map((o) => {
             const on = selected.includes(o.value);
@@ -86,7 +92,7 @@ function DetailField({
 
   const v = typeof value === "string" ? value : "";
   return (
-    <Field label={def.label} htmlFor={def.name} error={error}>
+    <Field label={def.label} htmlFor={def.name} error={error} required={def.name !== "notes" && def.name !== "specialRequirements"}>
       {def.kind === "textarea" ? (
         <><textarea id={def.name} rows={4} maxLength={1000} value={v} placeholder={def.placeholder} onChange={(e) => onChange(e.target.value)} className={inputCls(error)} /><p className="mt-1 text-right text-[11px] text-stone-400">{v.length}/1000</p></>
       ) : def.kind === "select" ? (
@@ -142,6 +148,19 @@ export default function PostRequirementPage() {
     }
     return {};
   }
+
+  useEffect(() => {
+    setErrors((prev) => {
+      const keys = Object.keys(prev);
+      if (keys.length === 0) return prev;
+      const now = validateStep();
+      const next: Record<string, string> = {};
+      for (const k of keys) if (now[k]) next[k] = now[k];
+      const same = Object.keys(next).length === keys.length && keys.every((k) => next[k] === prev[k]);
+      return same ? prev : next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [w.basics, w.details, w.step]);
 
   function firstInvalid(): { step: number; errors: Record<string, string> } | null {
     const be = validate(basicsSchema, b);
