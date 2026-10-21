@@ -306,7 +306,7 @@ export default function PostRequirementPage() {
         <div className="space-y-5">
           {w.step === 0 && (
             <>
-              <Field label="Who are you looking for?" error={errors.category}>
+              <Field label="Who are you looking for?" error={errors.category} required>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   {CATEGORIES.map((c) => (
                     <button
@@ -325,11 +325,11 @@ export default function PostRequirementPage() {
                 </div>
               </Field>
 
-              <Field label="Event name" htmlFor="eventName" error={errors.eventName}>
+              <Field label="Event name" htmlFor="eventName" error={errors.eventName} required>
                 <input id="eventName" value={b.eventName} placeholder="e.g. Royal Palace Reception & Gala" onChange={(e) => w.setBasics({ eventName: e.target.value })} className={inputCls(errors.eventName)} />
               </Field>
 
-              <Field label="Event type" htmlFor="eventType" error={errors.eventType}>
+              <Field label="Event type" htmlFor="eventType" error={errors.eventType} required>
                 <Select id="eventType" value={b.eventType} options={EVENT_TYPES} onChange={(v) => w.setBasics({ eventType: v })} error={errors.eventType} />
               </Field>
 
@@ -350,11 +350,11 @@ export default function PostRequirementPage() {
               </div>
 
               <div className={b.dateMode === "range" ? "grid gap-4 sm:grid-cols-2" : ""}>
-                <Field label={b.dateMode === "range" ? "Start date" : "Event date"} htmlFor="startDate" error={errors.startDate}>
+                <Field label={b.dateMode === "range" ? "Start date" : "Event date"} htmlFor="startDate" error={errors.startDate} required>
                   <input id="startDate" type="date" value={b.startDate} onChange={(e) => w.setBasics({ startDate: e.target.value })} className={inputCls(errors.startDate)} />
                 </Field>
                 {b.dateMode === "range" && (
-                  <Field label="End date" htmlFor="endDate" error={errors.endDate}>
+                  <Field label="End date" htmlFor="endDate" error={errors.endDate} required>
                     <input id="endDate" type="date" value={b.endDate} onChange={(e) => w.setBasics({ endDate: e.target.value })} className={inputCls(errors.endDate)} />
                   </Field>
                 )}
